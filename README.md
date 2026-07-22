@@ -1,6 +1,6 @@
 # 🎓 Student Application Portal
 
-## Professional GitHub Repository Structure
+## Professional GitHub Repository Structur
 
 ```text
 student-application-portal/
