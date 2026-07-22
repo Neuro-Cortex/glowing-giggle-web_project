@@ -84,6 +84,23 @@ Database.md
 ProjectReport.pdf
 Presentation.pptx
 
+
+Initial Project Setup
+
+Add Login Page
+
+Complete Student Registration
+
+Connect MongoDB
+
+Fix Login Bug
+
+Add JWT Authentication
+
+Deploy Backend
+
+Update README
+
 ## License
 
 MIT
