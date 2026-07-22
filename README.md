@@ -101,6 +101,18 @@ Deploy Backend
 
 Update README
 
+Version 1.0
+Authentication
+
+Version 2.0
+Student Dashboard
+
+Version 3.0
+Admin Panel
+
+Version 4.0
+Final Deployment
+
 ## License
 
 MIT
