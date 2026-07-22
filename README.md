@@ -74,6 +74,16 @@ See docs/API.md
 
 ---
 
+docs/
+
+SRS.pdf
+Requirement.md
+API.md
+ERD.png
+Database.md
+ProjectReport.pdf
+Presentation.pptx
+
 ## License
 
 MIT
