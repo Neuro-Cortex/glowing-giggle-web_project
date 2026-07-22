@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TA/UGA Management System - ER Diagram</title>
+    <style>
+        @media print {
+            body { margin: 0; padding: 10px; }
+            #erd { transform: scale(0.85); transform-origin: top left; }
+        }
+        body { 
+            margin: 0; 
+            padding: 20px; 
+            background: white;
+            font-family: Arial, sans-serif;
+        }
+        h2 { 
+            text-align: center; 
+            color: black; 
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+        #erd svg.erDiagram .divider path { stroke-opacity: 0.5; }
+        #erd svg.erDiagram .row-rect-odd path,
+        #erd svg.erDiagram .row-rect-odd rect,
+        #erd svg.erDiagram .row-rect-even path,
+        #erd svg.erDiagram .row-rect-even rect { stroke: none !important; }
+        #erd svg.erDiagram { 
+            width: 100%; 
+            height: auto; 
+            transform: scale(1.2); 
+            transform-origin: top left; 
+        }
+        #erd { 
+            overflow: auto; 
+            min-height: 900px; 
+            padding: 20px;
+            background-color: #ffffff;
+            border: 2px solid #000;
+        }
+        #erd svg.erDiagram text {
+            fill: #000000 !important;
+            font-weight: 700 !important;
+            font-size: 16px !important;
+        }
+        #erd svg.erDiagram .entityBox .header text {
+            fill: #000000 !important;
+            font-weight: 800 !important;
+            font-size: 17px !important;
+        }
+        #erd svg.erDiagram .relationshipLabel text {
+            fill: #000000 !important;
+            font-weight: 700 !important;
+            font-size: 14px !important;
+            background-color: #ffffff !important;
+        }
+    </style>
+</head>
+<body>
+    <h2>TA/UGA Management System - Entity Relationship Diagram</h2>
+    <div id="erd"></div>
+    
+    <script type="module">
+        import mermaid from 'https://esm.sh/mermaid@11/dist/mermaid.esm.min.mjs';
+        
+        mermaid.initialize({
+            startOnLoad: false,
+            theme: 'base',
+            fontFamily: 'Arial, sans-serif',
+            themeVariables: {
+                darkMode: false,
+                fontSize: '18px',
+                textColor: '#000000',
+                primaryTextColor: '#000000',
+                secondaryTextColor: '#000000',
+                tertiaryTextColor: '#000000',
+                noteTextColor: '#000000',
+                lineColor: '#000000',
+                titleColor: '#000000',
+                edgeLabelBackground: '#ffffff',
+            },
+        });
+        
+        const src = `erDiagram
+            USER ||--o| STUDENT : "is a"
+            USER ||--o| FACULTY : "is a"
+            USER ||--o| ADMIN : "is a"
+            USER ||--o{ NOTIFICATION : receives
+            STUDENT ||--o{ APPLICATION : submits
+            ADMIN ||--o{ TA_POSITION : publishes
+            COURSE ||--o{ TA_POSITION : offers
+            TA_POSITION ||--o{ APPLICATION : receives
+            APPLICATION ||--o{ DOCUMENT : includes
+            APPLICATION ||--|| ELIGIBILITY_VERIFICATION : undergoes
+            ADMIN ||--o{ ELIGIBILITY_VERIFICATION : performs
+            FACULTY ||--o{ SHORTLIST : creates
+            SHORTLIST }o--o{ APPLICATION : contains
+            APPLICATION ||--o| INTERVIEW : scheduled
+            FACULTY ||--o{ INTERVIEW : conducts
+            APPLICATION ||--o| ASSIGNMENT : "results in"
+            FACULTY ||--o{ ASSIGNMENT : supervises
+            COURSE ||--o{ ASSIGNMENT : "used in"
+            ASSIGNMENT ||--o{ SCHEDULE : generates
+            ASSIGNMENT ||--o{ WEEKLY_REPORT : tracked
+            FACULTY ||--o{ WEEKLY_REPORT : submits
+            WEEKLY_REPORT ||--|| PERFORMANCE_EVALUATION : produces
+            ADMIN ||--o{ WEEKLY_REPORT : verifies
+            ASSIGNMENT ||--o| TERMINATION : "may end in"
+            ASSIGNMENT ||--|| SEMESTER_EVALUATION : "concludes with"
+
+            USER {
+                int user_id PK
+                string name
+                string email
+                string password_hash
+                string role
+            }
+            STUDENT {
+                int student_id PK
+                int user_id FK
+                float cgpa
+                int completed_credits
+                string department
+            }
+            FACULTY {
+                int faculty_id PK
+                int user_id FK
+                string department
+                string designation
+            }
+            ADMIN {
+                int admin_id PK
+                int user_id FK
+            }
+            COURSE {
+                int course_id PK
+                string course_name
+                string department
+            }
+            TA_POSITION {
+                int position_id PK
+                int course_id FK
+                int admin_id FK
+                date deadline
+                string eligibility_criteria
+                string status
+            }
+            APPLICATION {
+                int application_id PK
+                int student_id FK
+                int position_id FK
+                string preferred_course
+                string status
+                date submitted_date
+            }
+            DOCUMENT {
+                int document_id PK
+                int application_id FK
+                string type
+                string file_path
+            }
+            ELIGIBILITY_VERIFICATION {
+                int verification_id PK
+                int application_id FK
+                int admin_id FK
+                string result
+                string remarks
+            }
+            SHORTLIST {
+                int shortlist_id PK
+                int faculty_id FK
+                int position_id FK
+                date created_date
+            }
+            INTERVIEW {
+                int interview_id PK
+                int application_id FK
+                int faculty_id FK
+                string room
+                datetime scheduled_at
+                int score
+            }
+            ASSIGNMENT {
+                int assignment_id PK
+                int application_id FK
+                int course_id FK
+                int faculty_id FK
+                string lab
+                string section
+                string acceptance_status
+            }
+            SCHEDULE {
+                int schedule_id PK
+                int assignment_id FK
+                string day
+                string time_slot
+            }
+            WEEKLY_REPORT {
+                int report_id PK
+                int assignment_id FK
+                int faculty_id FK
+                int week_number
+                string attendance_status
+            }
+            PERFORMANCE_EVALUATION {
+                int evaluation_id PK
+                int report_id FK
+                int attendance_score
+                int teaching_score
+                int communication_score
+            }
+            TERMINATION {
+                int termination_id PK
+                int assignment_id FK
+                string reason
+                date termination_date
+            }
+            SEMESTER_EVALUATION {
+                int semester_eval_id PK
+                int assignment_id FK
+                int overall_rating
+                string faculty_remarks
+            }
+            NOTIFICATION {
+                int notification_id PK
+                int user_id FK
+                string type
+                string message
+            }`;
+            
+        const { svg } = await mermaid.render('erd-svg', src);
+        document.getElementById('erd').innerHTML = svg;
+        
+        document.querySelectorAll('#erd svg text').forEach(text => {
+            text.style.fill = '#000000';
+            text.style.fontWeight = '700';
+        });
+    </script>
+</body>
+</html>
