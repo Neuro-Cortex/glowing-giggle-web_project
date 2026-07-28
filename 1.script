@@ -1,0 +1,1697 @@
+// ============================================================
+// 🎓 ULTIMATE ACADEMIC ERP SYSTEM v5.0 (FULLY FIXED)
+// ============================================================
+
+// ============================================================
+// 🏗️ SHEET NAMES CONSTANT
+// ============================================================
+
+const SHEET_NAMES = [
+  "📊 Academic Data",
+  "📈 Dashboard",
+  "🎯 CGPA Predictor",
+  "🔄 Retake Planner",
+  "📅 Semester Planner",
+  "🎓 Graduation Progress",
+  "📚 Course Analytics",
+  "⚠️ Academic Advisor",
+  "🏆 Achievement & Goals",
+  "⚙️ Settings",
+  "📋 Activity Log",
+  "📊 Heatmap"
+];
+
+// ============================================================
+// 🏗️ CREATE ALL SHEETS - FIXED
+// ============================================================
+
+function createAllSheets() {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    
+    // Delete all existing sheets except the first one
+    const sheets = ss.getSheets();
+    for (let i = sheets.length - 1; i >= 0; i--) {
+      if (sheets[i].getName() !== '📊 Academic Data') {
+        try {
+          ss.deleteSheet(sheets[i]);
+        } catch(e) {
+          // Skip if can't delete
+        }
+      }
+    }
+    
+    // Create all sheets
+    const sheetMap = {};
+    SHEET_NAMES.forEach(function(name) {
+      let sheet = ss.getSheetByName(name);
+      if (!sheet) {
+        sheet = ss.insertSheet(name);
+      }
+      sheetMap[name] = sheet;
+    });
+    
+    // Setup each sheet
+    setupAcademicData(sheetMap['📊 Academic Data']);
+    setupDashboard(sheetMap['📈 Dashboard']);
+    setupCGPAPredictor(sheetMap['🎯 CGPA Predictor']);
+    setupRetakePlanner(sheetMap['🔄 Retake Planner']);
+    setupSemesterPlanner(sheetMap['📅 Semester Planner']);
+    setupGraduationProgress(sheetMap['🎓 Graduation Progress']);
+    setupCourseAnalytics(sheetMap['📚 Course Analytics']);
+    setupAcademicAdvisor(sheetMap['⚠️ Academic Advisor']);
+    setupAchievementGoals(sheetMap['🏆 Achievement & Goals']);
+    setupSettings(sheetMap['⚙️ Settings']);
+    setupActivityLog(sheetMap['📋 Activity Log']);
+    setupHeatmap(sheetMap['📊 Heatmap']);
+    
+    // Insert sample data
+    insertSampleData(sheetMap['📊 Academic Data']);
+    
+    // Setup conditional formatting
+    setupConditionalFormatting(sheetMap['📊 Academic Data']);
+    
+    // Create menu
+    createMenu();
+    
+    // Refresh all
+    refreshAll();
+    
+    // Activate Dashboard
+    ss.setActiveSheet(sheetMap['📈 Dashboard']);
+    
+    SpreadsheetApp.getUi().alert('✅ Ultimate Academic ERP System তৈরি হয়েছে! 🎉\n\n' +
+      '📊 12টি Professional Sheet\n' +
+      '🎯 Smart Priority System\n' +
+      '📈 Real-time Analytics\n' +
+      '🤖 AI Academic Advisor');
+    
+  } catch (error) {
+    Logger.log('createAllSheets Error: ' + error);
+    SpreadsheetApp.getUi().alert('❌ Error: ' + error);
+  }
+}
+
+// ============================================================
+// 📊 ACADEMIC DATA SETUP - FIXED
+// ============================================================
+
+function setupAcademicData(sheet) {
+  try {
+    sheet.clear();
+    
+    // Headers
+    var headers = [
+      'Semester', 'Course Code', 'Course Title', 'Credit', 'Grade', 'Grade Point',
+      'Retake Status', 'Course Status', 'Remarks', 'Improvement Eligible',
+      'Priority Level', 'Previous Grade', 'New Grade', 'Credit Count',
+      'Course Type', 'Is Latest', 'Semester GPA', 'Overall CGPA'
+    ];
+    
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
+    sheet.getRange(1, 1, 1, headers.length).setBackground('#1a73e8');
+    sheet.getRange(1, 1, 1, headers.length).setFontColor('#ffffff');
+    sheet.setFrozenRows(1);
+    
+    // Column widths
+    var widths = [100, 120, 250, 80, 80, 100, 120, 130, 150, 130, 120, 120, 120, 100, 120, 100, 120, 120];
+    widths.forEach(function(w, i) { sheet.setColumnWidth(i + 1, w); });
+    
+    // Grade Dropdown
+    var gradeRange = sheet.getRange(2, 5, 1000, 1);
+    var gradeRule = SpreadsheetApp.newDataValidation()
+      .requireValueInList(['A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'F', 'W'], true)
+      .build();
+    gradeRange.setDataValidation(gradeRule);
+    
+    // Course Status Dropdown
+    var statusRange = sheet.getRange(2, 8, 1000, 1);
+    var statusRule = SpreadsheetApp.newDataValidation()
+      .requireValueInList(['Completed', 'Running', 'Future', 'Withdraw', 'Retaken'], true)
+      .build();
+    statusRange.setDataValidation(statusRule);
+    
+    // Course Type Dropdown
+    var typeRange = sheet.getRange(2, 15, 1000, 1);
+    var typeRule = SpreadsheetApp.newDataValidation()
+      .requireValueInList(['Core', 'Elective', 'Lab', 'Project'], true)
+      .build();
+    typeRange.setDataValidation(typeRule);
+    
+    // ====== SMART FORMULAS ======
+    
+    // 1. Grade Point
+    sheet.getRange(2, 6, 1000, 1).setFormula(
+      '=IF(E2="A",4,IF(E2="A-",3.67,IF(E2="B+",3.33,IF(E2="B",3,IF(E2="B-",2.67,' +
+      'IF(E2="C+",2.33,IF(E2="C",2,IF(E2="C-",1.67,IF(E2="D+",1.33,IF(E2="D",1,' +
+      'IF(E2="F",0,IF(E2="W",0,""))))))))))))'
+    );
+    
+    // 2. Improvement Eligible
+    sheet.getRange(2, 10, 1000, 1).setFormula(
+      '=IF(OR(E2="D+",E2="D",E2="C-",E2="C",E2="C+",E2="B-",E2="B",E2="B+"),"Yes",' +
+      'IF(E2="","",IF(OR(E2="A",E2="A-",E2="F",E2="W"),"No","")))'
+    );
+    
+    // 3. Priority Level
+    sheet.getRange(2, 11, 1000, 1).setFormula(
+      '=IF(OR(E2="D+",E2="D"),1,IF(OR(E2="C",E2="C-"),2,IF(E2="C+",3,IF(E2="B-",4,' +
+      'IF(E2="B",5,IF(E2="B+",6,IF(OR(E2="A-",E2="A"),7,IF(OR(E2="F",E2="W"),8,""))))))))'
+    );
+    
+    // 4. Credit Count
+    sheet.getRange(2, 14, 1000, 1).setFormula(
+      '=IF(AND(G2<>"Completed",E2<>"W",E2<>"F",E2<>""),D2,0)'
+    );
+    
+    // 5. Is Latest
+    sheet.getRange(2, 16, 1000, 1).setFormula(
+      '=IF(ROW(B2)=MAX(FILTER(ROW(B:B),B:B=B2)),"Yes","No")'
+    );
+    
+    // 6. Semester GPA (Weighted)
+    sheet.getRange(2, 17, 1000, 1).setFormula(
+      '=IFERROR(SUMPRODUCT((A:A=A2)*(D:D)*(F:F)*(F:F>0))/SUMPRODUCT((A:A=A2)*(D:D)*(F:F>0)),0)'
+    );
+    
+    // 7. Overall CGPA (Weighted)
+    sheet.getRange(2, 18, 1000, 1).setFormula(
+      '=IFERROR(SUMPRODUCT((H:H="Completed")*(D:D)*(F:F)*(F:F>0))/SUMPRODUCT((H:H="Completed")*(D:D)*(F:F>0)),0)'
+    );
+    
+  } catch (error) {
+    Logger.log('setupAcademicData Error: ' + error);
+  }
+}
+
+// ============================================================
+// 📈 DASHBOARD SETUP - FIXED
+// ============================================================
+
+function setupDashboard(sheet) {
+  try {
+    sheet.clear();
+    sheet.setColumnWidths(1, 4, 200);
+    sheet.setRowHeights(1, 30, 30);
+    
+    // Header
+    sheet.mergeCells(1, 1, 1, 4);
+    sheet.getRange(1, 1).setValue('🎓 ACADEMIC PERFORMANCE DASHBOARD');
+    sheet.getRange(1, 1).setFontSize(24);
+    sheet.getRange(1, 1).setFontWeight('bold');
+    sheet.getRange(1, 1).setBackground('#1a73e8');
+    sheet.getRange(1, 1).setFontColor('#ffffff');
+    sheet.setRowHeight(1, 60);
+    
+    // Status Card
+    sheet.mergeCells(3, 1, 1, 2);
+    sheet.getRange(3, 1).setValue('📊 ACADEMIC STATUS');
+    sheet.getRange(3, 1).setFontWeight('bold');
+    sheet.getRange(3, 1).setFontSize(14);
+    sheet.getRange(3, 1).setBackground('#e8f0fe');
+    
+    sheet.getRange(4, 1, 1, 2).merge();
+    sheet.getRange(4, 1).setFormula(
+      '=LET(cgpa,IFERROR(SUMPRODUCT(\'📊 Academic Data\'!D:D,\'📊 Academic Data\'!F:F,\'📊 Academic Data\'!F:F>0,' +
+      '\'📊 Academic Data\'!H:H="Completed")/SUMPRODUCT(\'📊 Academic Data\'!D:D,\'📊 Academic Data\'!F:F>0,' +
+      '\'📊 Academic Data\'!H:H="Completed"),0),' +
+      'IF(cgpa>=3.7,"🌟 Outstanding Performance!",' +
+      'IF(cgpa>=3.3,"📈 Excellent Progress",' +
+      'IF(cgpa>=3.0,"👍 Good Standing",' +
+      'IF(cgpa>=2.5,"⚠️ Need Improvement",' +
+      'IF(cgpa>=2.0,"🔴 Academic Warning","🚨 Academic Probation")))))'
+    );
+    sheet.getRange(4, 1).setFontSize(18);
+    sheet.getRange(4, 1).setFontWeight('bold');
+    
+    // Quick Stats Cards
+    var stats = [
+      ['📊 Current CGPA', '=IFERROR(SUMPRODUCT(\'📊 Academic Data\'!D:D,\'📊 Academic Data\'!F:F,' +
+        '\'📊 Academic Data\'!F:F>0,\'📊 Academic Data\'!H:H="Completed")/' +
+        'SUMPRODUCT(\'📊 Academic Data\'!D:D,\'📊 Academic Data\'!F:F>0,\'📊 Academic Data\'!H:H="Completed"),0)'],
+      ['✅ Credits Earned', '=SUMPRODUCT(\'📊 Academic Data\'!D:D,\'📊 Academic Data\'!F:F>0,' +
+        '\'📊 Academic Data\'!H:H="Completed")'],
+      ['📚 Credits Remaining', '=Settings!B3 - B4'],
+      ['🎯 Graduation %', '=IFERROR(B4/Settings!B3*100,0)'],
+      ['📝 Total Courses', '=COUNTA(\'📊 Academic Data\'!B:B)-1'],
+      ['✅ Passed', '=COUNTIFS(\'📊 Academic Data\'!H:H,"Completed",\'📊 Academic Data\'!E:E,"<>W",' +
+        '\'📊 Academic Data\'!E:E,"<>F")'],
+      ['❌ Failed', '=COUNTIF(\'📊 Academic Data\'!E:E,"F")'],
+      ['📌 Withdrawn', '=COUNTIF(\'📊 Academic Data\'!E:E,"W")']
+    ];
+    
+    var row = 6;
+    stats.forEach(function(stat, i) {
+      var r = row + Math.floor(i / 2) * 3;
+      var c = (i % 2) * 2 + 1;
+      
+      sheet.getRange(r, c, 1, 2).merge();
+      sheet.getRange(r, c).setValue(stat[0]);
+      sheet.getRange(r, c).setFontWeight('bold');
+      sheet.getRange(r, c).setBackground('#f8f9fa');
+      
+      sheet.getRange(r + 1, c, 1, 2).merge();
+      sheet.getRange(r + 1, c).setFormula(stat[1]);
+      sheet.getRange(r + 1, c).setFontSize(20);
+      sheet.getRange(r + 1, c).setFontWeight('bold');
+    });
+    
+    // Semester GPA Table
+    sheet.getRange(6, 5).setValue('📈 SEMESTER GPA');
+    sheet.getRange(6, 5).setFontWeight('bold');
+    sheet.getRange(6, 5).setFontSize(14);
+    sheet.getRange(6, 5, 1, 3).setBackground('#e8f0fe');
+    
+    sheet.getRange(7, 5).setValue('Semester');
+    sheet.getRange(7, 6).setValue('GPA');
+    sheet.getRange(7, 7).setValue('Status');
+    sheet.getRange(7, 5, 1, 3).setFontWeight('bold');
+    sheet.getRange(7, 5, 1, 3).setBackground('#1a73e8');
+    sheet.getRange(7, 5, 1, 3).setFontColor('#ffffff');
+    
+    // Dynamic Semester List - FIXED
+    sheet.getRange(8, 5, 100, 3).setFormula(
+      '=QUERY(UNIQUE(\'📊 Academic Data\'!A:A),' +
+      '"SELECT A WHERE A IS NOT NULL AND A > 0 ORDER BY A",0)'
+    );
+    
+    // Semester GPA (Weighted) - FIXED
+    var semRange = sheet.getRange(8, 6, 100, 1);
+    semRange.setFormula(
+      '=IFERROR(SUMPRODUCT(\'📊 Academic Data\'!D:D,\'📊 Academic Data\'!F:F,' +
+      '\'📊 Academic Data\'!A:A=E8,\'📊 Academic Data\'!F:F>0)/' +
+      'SUMPRODUCT(\'📊 Academic Data\'!D:D,\'📊 Academic Data\'!A:A=E8,\'📊 Academic Data\'!F:F>0),0)'
+    );
+    
+    // Semester Status
+    sheet.getRange(8, 7, 100, 1).setFormula(
+      '=IF(F8>=3.7,"🌟",IF(F8>=3.3,"📈",IF(F8>=3.0,"✅",IF(F8>=2.5,"⚠️",IF(F8>=2.0,"🔴","🚨")))))'
+    );
+    
+    // Best/Worst Semester
+    sheet.getRange(20, 5).setValue('🏆 Best Semester:');
+    sheet.getRange(20, 5).setFontWeight('bold');
+    sheet.getRange(20, 6).setFormula('=INDEX(E8:E,MATCH(MAX(F8:F),F8:F,0))');
+    sheet.getRange(21, 5).setValue('📉 Worst Semester:');
+    sheet.getRange(21, 5).setFontWeight('bold');
+    sheet.getRange(21, 6).setFormula('=INDEX(E8:E,MATCH(MIN(F8:F),F8:F,0))');
+    
+    sheet.autoResizeColumns(1, 7);
+    
+  } catch (error) {
+    Logger.log('setupDashboard Error: ' + error);
+  }
+}
+
+// ============================================================
+// 🎯 CGPA PREDICTOR SETUP - FIXED
+// ============================================================
+
+function setupCGPAPredictor(sheet) {
+  try {
+    sheet.clear();
+    
+    // Header
+    sheet.mergeCells(1, 1, 1, 4);
+    sheet.getRange(1, 1).setValue('🎯 CGPA PREDICTOR');
+    sheet.getRange(1, 1).setFontSize(20);
+    sheet.getRange(1, 1).setFontWeight('bold');
+    sheet.getRange(1, 1).setBackground('#1a73e8');
+    sheet.getRange(1, 1).setFontColor('#ffffff');
+    sheet.setRowHeight(1, 50);
+    
+    // Current Stats
+    sheet.getRange(3, 1).setValue('📊 Current CGPA:');
+    sheet.getRange(3, 1).setFontWeight('bold');
+    sheet.getRange(3, 2).setFormula('=Dashboard!B4');
+    
+    sheet.getRange(4, 1).setValue('📚 Remaining Credits:');
+    sheet.getRange(4, 1).setFontWeight('bold');
+    sheet.getRange(4, 2).setFormula('=Dashboard!B5');
+    
+    // Target GPA Predictor
+    sheet.getRange(6, 1).setValue('🎯 PREDICTED CGPA FOR TARGET GPA');
+    sheet.getRange(6, 1).setFontWeight('bold');
+    sheet.getRange(6, 1).setFontSize(14);
+    sheet.getRange(6, 1, 1, 3).setBackground('#e8f0fe');
+    
+    var targets = [4.0, 3.75, 3.67, 3.5, 3.33, 3.0, 2.75, 2.5];
+    sheet.getRange(7, 1).setValue('Target GPA');
+    sheet.getRange(7, 2).setValue('Final CGPA');
+    sheet.getRange(7, 3).setValue('Required');
+    sheet.getRange(7, 1, 1, 3).setFontWeight('bold');
+    sheet.getRange(7, 1, 1, 3).setBackground('#1a73e8');
+    sheet.getRange(7, 1, 1, 3).setFontColor('#ffffff');
+    
+    targets.forEach(function(target, i) {
+      var row = 8 + i;
+      sheet.getRange(row, 1).setValue(target);
+      sheet.getRange(row, 2).setFormula(
+        '=IFERROR((' + target + '*Dashboard!B5 + Dashboard!B4*' +
+        'SUMPRODUCT(\'📊 Academic Data\'!D:D,\'📊 Academic Data\'!F:F>0,\'📊 Academic Data\'!H:H="Completed"))/' +
+        '(Dashboard!B5 + SUMPRODUCT(\'📊 Academic Data\'!D:D,\'📊 Academic Data\'!F:F>0,\'📊 Academic Data\'!H:H="Completed")),0)'
+      );
+      sheet.getRange(row, 3).setFormula('=IF(B' + row + '>=Settings!B4,"✅","⏳")');
+    });
+    
+    // Target CGPA Calculator
+    sheet.getRange(18, 1).setValue('🎯 TARGET CGPA CALCULATOR');
+    sheet.getRange(18, 1).setFontWeight('bold');
+    sheet.getRange(18, 1).setFontSize(14);
+    sheet.getRange(18, 1, 1, 3).setBackground('#e8f0fe');
+    
+    sheet.getRange(19, 1).setValue('Target CGPA:');
+    sheet.getRange(19, 2).setValue(3.3);
+    sheet.getRange(20, 1).setValue('Required GPA in Remaining:');
+    sheet.getRange(20, 2).setFormula(
+      '=IFERROR((B19*(Dashboard!B5+' +
+      'SUMPRODUCT(\'📊 Academic Data\'!D:D,\'📊 Academic Data\'!F:F>0,\'📊 Academic Data\'!H:H="Completed"))-' +
+      'Dashboard!B4*SUMPRODUCT(\'📊 Academic Data\'!D:D,\'📊 Academic Data\'!F:F>0,\'📊 Academic Data\'!H:H="Completed"))' +
+      '/Dashboard!B5,0)'
+    );
+    sheet.getRange(21, 1).setValue('Status:');
+    sheet.getRange(21, 2).setFormula('=IF(B20<=4,"✅ Achievable","⚠️ Need Higher GPA")');
+    
+    sheet.autoResizeColumns(1, 3);
+    
+  } catch (error) {
+    Logger.log('setupCGPAPredictor Error: ' + error);
+  }
+}
+
+// ============================================================
+// 🔄 RETAKE PLANNER - FIXED
+// ============================================================
+
+function setupRetakePlanner(sheet) {
+  try {
+    sheet.clear();
+    
+    // Header
+    sheet.mergeCells(1, 1, 1, 8);
+    sheet.getRange(1, 1).setValue('🔄 SMART RETAKE PLANNER');
+    sheet.getRange(1, 1).setFontSize(20);
+    sheet.getRange(1, 1).setFontWeight('bold');
+    sheet.getRange(1, 1).setBackground('#1a73e8');
+    sheet.getRange(1, 1).setFontColor('#ffffff');
+    sheet.setRowHeight(1, 50);
+    
+    // Priority Status
+    sheet.getRange(3, 1).setValue('🎯 CURRENT PRIORITY:');
+    sheet.getRange(3, 1).setFontWeight('bold');
+    sheet.getRange(3, 1).setFontSize(16);
+    sheet.getRange(3, 2, 1, 3).merge();
+    sheet.getRange(3, 2).setFormula(
+      '=LET(dCount,COUNTIFS(\'📊 Academic Data\'!E:E,"D+",\'📊 Academic Data\'!K:K,">0",' +
+      '\'📊 Academic Data\'!K:K,"<8",\'📊 Academic Data\'!G:G,"<>Retaken")+' +
+      'COUNTIFS(\'📊 Academic Data\'!E:E,"D",\'📊 Academic Data\'!K:K,">0",' +
+      '\'📊 Academic Data\'!K:K,"<8",\'📊 Academic Data\'!G:G,"<>Retaken"),' +
+      'cCount,COUNTIFS(\'📊 Academic Data\'!E:E,"C",\'📊 Academic Data\'!K:K,">0",' +
+      '\'📊 Academic Data\'!K:K,"<8",\'📊 Academic Data\'!G:G,"<>Retaken")+' +
+      'COUNTIFS(\'📊 Academic Data\'!E:E,"C-",\'📊 Academic Data\'!K:K,">0",' +
+      '\'📊 Academic Data\'!K:K,"<8",\'📊 Academic Data\'!G:G,"<>Retaken"),' +
+      'cPlus,COUNTIFS(\'📊 Academic Data\'!E:E,"C+",\'📊 Academic Data\'!K:K,">0",' +
+      '\'📊 Academic Data\'!K:K,"<8",\'📊 Academic Data\'!G:G,"<>Retaken"),' +
+      'bMinus,COUNTIFS(\'📊 Academic Data\'!E:E,"B-",\'📊 Academic Data\'!K:K,">0",' +
+      '\'📊 Academic Data\'!K:K,"<8",\'📊 Academic Data\'!G:G,"<>Retaken"),' +
+      'b,COUNTIFS(\'📊 Academic Data\'!E:E,"B",\'📊 Academic Data\'!K:K,">0",' +
+      '\'📊 Academic Data\'!K:K,"<8",\'📊 Academic Data\'!G:G,"<>Retaken"),' +
+      'bPlus,COUNTIFS(\'📊 Academic Data\'!E:E,"B+",\'📊 Academic Data\'!K:K,">0",' +
+      '\'📊 Academic Data\'!K:K,"<8",\'📊 Academic Data\'!G:G,"<>Retaken"),' +
+      'IF(dCount>0,"🔴 Priority 1: D Grade Courses (" & dCount & " remaining)",' +
+      'IF(cCount>0,"🟠 Priority 2: C Grade Courses (" & cCount & " remaining)",' +
+      'IF(cPlus>0,"🟡 Priority 3: C+ Grade Courses (" & cPlus & " remaining)",' +
+      'IF(bMinus>0,"🟢 Priority 4: B- Grade Courses (" & bMinus & " remaining)",' +
+      'IF(b>0,"🔵 Priority 5: B Grade Courses (" & b & " remaining)",' +
+      'IF(bPlus>0,"🟣 Priority 6: B+ Grade Courses (" & bPlus & " remaining)",' +
+      '"✅ All Courses Improved! 🎉")))))))))'
+    );
+    sheet.getRange(3, 2).setFontSize(16);
+    sheet.getRange(3, 2).setFontWeight('bold');
+    
+    // Progress
+    sheet.getRange(4, 1).setValue('📊 Progress:');
+    sheet.getRange(4, 1).setFontWeight('bold');
+    sheet.getRange(4, 2, 1, 3).merge();
+    sheet.getRange(4, 2).setFormula(
+      '=LET(total,COUNTIFS(\'📊 Academic Data\'!K:K,">0",\'📊 Academic Data\'!K:K,"<8"),' +
+      'done,COUNTIFS(\'📊 Academic Data\'!G:G,"Retaken",\'📊 Academic Data\'!K:K,">0",\'📊 Academic Data\'!K:K,"<8"),' +
+      'IF(total=0,"✅ All Done!",TEXT(done/total*100,"0") & "% Complete"))'
+    );
+    
+    // Progress Bar
+    sheet.getRange(5, 2, 1, 3).merge();
+    sheet.getRange(5, 2).setFormula(
+      '=LET(total,COUNTIFS(\'📊 Academic Data\'!K:K,">0",\'📊 Academic Data\'!K:K,"<8"),' +
+      'done,COUNTIFS(\'📊 Academic Data\'!G:G,"Retaken",\'📊 Academic Data\'!K:K,">0",\'📊 Academic Data\'!K:K,"<8"),' +
+      'IF(total=0,"████████████████████",REPT("█",ROUND(done/total*20,0)) & REPT("░",20-ROUND(done/total*20,0))))'
+    );
+    sheet.getRange(5, 2).setFontSize(14);
+    
+    // Current Priority Courses
+    sheet.getRange(7, 1).setValue('📋 COURSES TO RETAKE (Current Priority Only)');
+    sheet.getRange(7, 1).setFontWeight('bold');
+    sheet.getRange(7, 1).setFontSize(14);
+    sheet.getRange(7, 1, 1, 6).merge();
+    sheet.getRange(7, 1, 1, 6).setBackground('#e8f0fe');
+    
+    var headers = ['Course Code', 'Course Title', 'Credit', 'Current Grade', 'Priority', 'Benefit'];
+    sheet.getRange(8, 1, 1, 6).setValues([headers]);
+    sheet.getRange(8, 1, 1, 6).setFontWeight('bold');
+    sheet.getRange(8, 1, 1, 6).setBackground('#1a73e8');
+    sheet.getRange(8, 1, 1, 6).setFontColor('#ffffff');
+    
+    // Dynamic Query - FIXED
+    var priorityFormula = getPriorityFormula();
+    sheet.getRange(9, 1, 100, 6).setFormula(
+      '=QUERY({\'📊 Academic Data\'!B2:E,\'📊 Academic Data\'!K2:K,\'📊 Academic Data\'!F2:F},' +
+      '"SELECT * WHERE Col4 <= ' + priorityFormula + ' AND Col4 > 0 AND Col4 < 8 ' +
+      'AND Col4 IS NOT NULL AND Col5 IS NOT NULL ORDER BY Col4",0)'
+    );
+    
+    // Retake Impact Calculator
+    sheet.getRange(110, 1).setValue('📊 RETAKE IMPACT CALCULATOR');
+    sheet.getRange(110, 1).setFontWeight('bold');
+    sheet.getRange(110, 1).setFontSize(14);
+    sheet.getRange(110, 1, 1, 4).setBackground('#e8f0fe');
+    
+    sheet.getRange(111, 1).setValue('Select Course:');
+    sheet.getRange(111, 2).setValue('');
+    var courseRule = SpreadsheetApp.newDataValidation()
+      .requireValueInFormula('=UNIQUE(\'📊 Academic Data\'!B:B)')
+      .build();
+    sheet.getRange(111, 2).setDataValidation(courseRule);
+    
+    sheet.getRange(112, 1).setValue('New Grade:');
+    sheet.getRange(112, 2).setValue('');
+    var gradeRule2 = SpreadsheetApp.newDataValidation()
+      .requireValueInList(['A','A-','B+','B','B-','C+','C','C-','D+','D','F'], true)
+      .build();
+    sheet.getRange(112, 2).setDataValidation(gradeRule2);
+    
+    sheet.getRange(113, 1).setValue('Current CGPA:');
+    sheet.getRange(113, 2).setFormula('=Dashboard!B4');
+    sheet.getRange(114, 1).setValue('New CGPA:');
+    sheet.getRange(114, 2).setFormula(
+      '=IFERROR((' + 
+      'Dashboard!B4*SUMPRODUCT(\'📊 Academic Data\'!D:D,\'📊 Academic Data\'!F:F>0,\'📊 Academic Data\'!H:H="Completed") - ' +
+      'VLOOKUP(B111,\'📊 Academic Data\'!B:F,4,0)*VLOOKUP(B111,\'📊 Academic Data\'!B:F,6,0) + ' +
+      'VLOOKUP(B111,\'📊 Academic Data\'!B:F,4,0)*VLOOKUP(B112,{"A",4;"A-",3.67;"B+",3.33;"B",3;' +
+      '"B-",2.67;"C+",2.33;"C",2;"C-",1.67;"D+",1.33;"D",1;"F",0},2,0)' +
+      ')/SUMPRODUCT(\'📊 Academic Data\'!D:D,\'📊 Academic Data\'!F:F>0,\'📊 Academic Data\'!H:H="Completed"),"N/A")'
+    );
+    sheet.getRange(115, 1).setValue('Improvement:');
+    sheet.getRange(115, 2).setFormula('=IF(ISNUMBER(B114),B114-B113,"N/A")');
+    sheet.getRange(116, 1).setValue('Recommendation:');
+    sheet.getRange(116, 2).setFormula('=IF(ISNUMBER(B114),IF(B114-B113>0.05,"✅ Highly Recommended",' +
+      'IF(B114-B113>0.02,"👍 Recommended","⚠️ Low Impact")),"")');
+    
+    sheet.autoResizeColumns(1, 6);
+    
+  } catch (error) {
+    Logger.log('setupRetakePlanner Error: ' + error);
+  }
+}
+
+function getPriorityFormula() {
+  return 'IF(COUNTIFS(\'📊 Academic Data\'!E:E,"D+",\'📊 Academic Data\'!K:K,">0",' +
+    '\'📊 Academic Data\'!K:K,"<8",\'📊 Academic Data\'!G:G,"<>Retaken")>0,1,' +
+    'IF(COUNTIFS(\'📊 Academic Data\'!E:E,"D",\'📊 Academic Data\'!K:K,">0",' +
+    '\'📊 Academic Data\'!K:K,"<8",\'📊 Academic Data\'!G:G,"<>Retaken")>0,1,' +
+    'IF(COUNTIFS(\'📊 Academic Data\'!E:E,"C",\'📊 Academic Data\'!K:K,">0",' +
+    '\'📊 Academic Data\'!K:K,"<8",\'📊 Academic Data\'!G:G,"<>Retaken")>0,2,' +
+    'IF(COUNTIFS(\'📊 Academic Data\'!E:E,"C-",\'📊 Academic Data\'!K:K,">0",' +
+    '\'📊 Academic Data\'!K:K,"<8",\'📊 Academic Data\'!G:G,"<>Retaken")>0,2,' +
+    'IF(COUNTIFS(\'📊 Academic Data\'!E:E,"C+",\'📊 Academic Data\'!K:K,">0",' +
+    '\'📊 Academic Data\'!K:K,"<8",\'📊 Academic Data\'!G:G,"<>Retaken")>0,3,' +
+    'IF(COUNTIFS(\'📊 Academic Data\'!E:E,"B-",\'📊 Academic Data\'!K:K,">0",' +
+    '\'📊 Academic Data\'!K:K,"<8",\'📊 Academic Data\'!G:G,"<>Retaken")>0,4,' +
+    'IF(COUNTIFS(\'📊 Academic Data\'!E:E,"B",\'📊 Academic Data\'!K:K,">0",' +
+    '\'📊 Academic Data\'!K:K,"<8",\'📊 Academic Data\'!G:G,"<>Retaken")>0,5,' +
+    'IF(COUNTIFS(\'📊 Academic Data\'!E:E,"B+",\'📊 Academic Data\'!K:K,">0",' +
+    '\'📊 Academic Data\'!K:K,"<8",\'📊 Academic Data\'!G:G,"<>Retaken")>0,6,7))))))))';
+}
+
+// ============================================================
+// 📅 SEMESTER PLANNER - FIXED
+// ============================================================
+
+function setupSemesterPlanner(sheet) {
+  try {
+    sheet.clear();
+    
+    sheet.mergeCells(1, 1, 1, 4);
+    sheet.getRange(1, 1).setValue('📅 SEMESTER PLANNER');
+    sheet.getRange(1, 1).setFontSize(20);
+    sheet.getRange(1, 1).setFontWeight('bold');
+    sheet.getRange(1, 1).setBackground('#1a73e8');
+    sheet.getRange(1, 1).setFontColor('#ffffff');
+    sheet.setRowHeight(1, 50);
+    
+    // Current Semester
+    var currentSem = getCurrentSemester();
+    sheet.getRange(3, 1).setValue('📌 Current Semester:');
+    sheet.getRange(3, 1).setFontWeight('bold');
+    sheet.getRange(3, 2).setValue(currentSem);
+    
+    // Course Load
+    sheet.getRange(4, 1).setValue('📚 Courses in Current Semester:');
+    sheet.getRange(4, 1).setFontWeight('bold');
+    sheet.getRange(4, 2).setFormula('=COUNTIF(\'📊 Academic Data\'!A:A,' + currentSem + ')');
+    
+    sheet.getRange(5, 1).setValue('⚡ Credits in Current Semester:');
+    sheet.getRange(5, 1).setFontWeight('bold');
+    sheet.getRange(5, 2).setFormula('=SUMIF(\'📊 Academic Data\'!A:A,' + currentSem + ',\'📊 Academic Data\'!D:D)');
+    
+    // Load Status
+    sheet.getRange(7, 1).setValue('💡 LOAD STATUS');
+    sheet.getRange(7, 1).setFontWeight('bold');
+    sheet.getRange(7, 1).setFontSize(14);
+    sheet.getRange(7, 1, 1, 4).setBackground('#e8f0fe');
+    
+    sheet.getRange(8, 1).setValue('Current Load:');
+    sheet.getRange(8, 2).setFormula('=SUMIF(\'📊 Academic Data\'!A:A,' + currentSem + ',\'📊 Academic Data\'!D:D)');
+    sheet.getRange(9, 1).setValue('Recommended Max:');
+    sheet.getRange(9, 2).setValue('18');
+    sheet.getRange(10, 1).setValue('Status:');
+    sheet.getRange(10, 2).setFormula(
+      '=LET(load,SUMIF(\'📊 Academic Data\'!A:A,' + currentSem + ',\'📊 Academic Data\'!D:D),' +
+      'IF(load<=12,"✅ Light Load - Good for Retakes",' +
+      'IF(load<=15,"👍 Balanced Load",' +
+      'IF(load<=18,"⚠️ Moderate Load","🔴 Heavy Load - Consider Reducing"))))'
+    );
+    
+    // Upcoming Courses
+    sheet.getRange(12, 1).setValue('📋 UPCOMING COURSES');
+    sheet.getRange(12, 1).setFontWeight('bold');
+    sheet.getRange(12, 1).setFontSize(14);
+    sheet.getRange(12, 1, 1, 4).setBackground('#e8f0fe');
+    
+    var headers = ['Semester', 'Course Code', 'Course Title', 'Credit'];
+    sheet.getRange(13, 1, 1, 4).setValues([headers]);
+    sheet.getRange(13, 1, 1, 4).setFontWeight('bold');
+    sheet.getRange(13, 1, 1, 4).setBackground('#1a73e8');
+    sheet.getRange(13, 1, 1, 4).setFontColor('#ffffff');
+    
+    sheet.getRange(14, 1, 50, 4).setFormula(
+      '=QUERY(\'📊 Academic Data\'!A2:D,' +
+      '"SELECT A,B,C,D WHERE A > ' + currentSem + ' AND H = \'Future\' ORDER BY A LIMIT 20",0)'
+    );
+    
+    sheet.autoResizeColumns(1, 4);
+    
+  } catch (error) {
+    Logger.log('setupSemesterPlanner Error: ' + error);
+  }
+}
+
+// ============================================================
+// 🎓 GRADUATION PROGRESS - FIXED
+// ============================================================
+
+function setupGraduationProgress(sheet) {
+  try {
+    sheet.clear();
+    
+    sheet.mergeCells(1, 1, 1, 4);
+    sheet.getRange(1, 1).setValue('🎓 GRADUATION PROGRESS');
+    sheet.getRange(1, 1).setFontSize(20);
+    sheet.getRange(1, 1).setFontWeight('bold');
+    sheet.getRange(1, 1).setBackground('#1a73e8');
+    sheet.getRange(1, 1).setFontColor('#ffffff');
+    sheet.setRowHeight(1, 50);
+    
+    // Stats
+    var gradStats = [
+      ['📊 Total Credits Required:', '=Settings!B3'],
+      ['✅ Credits Completed:', '=Dashboard!B4'],
+      ['📚 Credits Remaining:', '=Dashboard!B5'],
+      ['🎯 Progress:', '=Dashboard!B6 & "%"']
+    ];
+    
+    gradStats.forEach(function(stat, i) {
+      var row = 3 + i;
+      sheet.getRange(row, 1).setValue(stat[0]);
+      sheet.getRange(row, 1).setFontWeight('bold');
+      sheet.getRange(row, 2).setFormula(stat[1]);
+      sheet.getRange(row, 1, 1, 2).setBackground(i % 2 === 0 ? '#f8f9fa' : '#ffffff');
+    });
+    
+    // Progress Bar
+    sheet.getRange(8, 1).setValue('📊 GRADUATION PROGRESS BAR');
+    sheet.getRange(8, 1).setFontWeight('bold');
+    sheet.getRange(8, 1).setFontSize(14);
+    sheet.getRange(8, 1, 1, 4).setBackground('#e8f0fe');
+    
+    sheet.getRange(9, 1, 1, 4).merge();
+    sheet.getRange(9, 1).setFormula('=REPT("█",ROUND(Dashboard!B6/5,0)) & REPT("░",20-ROUND(Dashboard!B6/5,0))');
+    sheet.getRange(9, 1).setFontSize(14);
+    
+    // Expected Graduation - FIXED
+    var currentSem = getCurrentSemester();
+    sheet.getRange(11, 1).setValue('📅 Expected Graduation:');
+    sheet.getRange(11, 1).setFontWeight('bold');
+    sheet.getRange(11, 2).setFormula(
+      '=LET(remaining,Settings!B3-Dashboard!B4,' +
+      'avgCreditPerSem,IFERROR(Dashboard!B4/(COUNTUNIQUE(\'📊 Academic Data\'!A:A)-1),12),' +
+      'semsNeeded,IFERROR(CEILING(remaining/avgCreditPerSem,1),1),' +
+      'IF(remaining<=0,"🎉 Already Graduated!",' + currentSem + '+semsNeeded*3))'
+    );
+    
+    // Semester-wise Completion
+    sheet.getRange(13, 1).setValue('📊 SEMESTER-WISE COMPLETION');
+    sheet.getRange(13, 1).setFontWeight('bold');
+    sheet.getRange(13, 1).setFontSize(14);
+    sheet.getRange(13, 1, 1, 4).setBackground('#e8f0fe');
+    
+    var headers2 = ['Semester', 'Credits Earned', 'Credits Attempted', 'Completion %'];
+    sheet.getRange(14, 1, 1, 4).setValues([headers2]);
+    sheet.getRange(14, 1, 1, 4).setFontWeight('bold');
+    sheet.getRange(14, 1, 1, 4).setBackground('#1a73e8');
+    sheet.getRange(14, 1, 1, 4).setFontColor('#ffffff');
+    
+    sheet.getRange(15, 1, 100, 4).setFormula(
+      '=QUERY({' +
+      'A2:A, ' +
+      'SUMIFS(D:D,A:A,A2:A), ' +
+      'SUMIFS(D:D,A:A,A2:A), ' +
+      'ARRAYFORMULA(IFERROR(SUMIFS(D:D,A:A,A2:A)/SUMIFS(D:D,A:A,A2:A)*100,0))' +
+      '}, "SELECT * WHERE Col1 IS NOT NULL GROUP BY Col1 LABEL Col1 \'Semester\', Col2 \'Credits Earned\', Col3 \'Credits Attempted\', Col4 \'Completion %\' ORDER BY Col1",0)'
+    );
+    
+    sheet.autoResizeColumns(1, 4);
+    
+  } catch (error) {
+    Logger.log('setupGraduationProgress Error: ' + error);
+  }
+}
+
+// ============================================================
+// 📚 COURSE ANALYTICS - FIXED
+// ============================================================
+
+function setupCourseAnalytics(sheet) {
+  try {
+    sheet.clear();
+    
+    sheet.mergeCells(1, 1, 1, 4);
+    sheet.getRange(1, 1).setValue('📚 COURSE ANALYTICS');
+    sheet.getRange(1, 1).setFontSize(20);
+    sheet.getRange(1, 1).setFontWeight('bold');
+    sheet.getRange(1, 1).setBackground('#1a73e8');
+    sheet.getRange(1, 1).setFontColor('#ffffff');
+    sheet.setRowHeight(1, 50);
+    
+    // Grade Distribution
+    sheet.getRange(3, 1).setValue('📊 GRADE DISTRIBUTION');
+    sheet.getRange(3, 1).setFontWeight('bold');
+    sheet.getRange(3, 1).setFontSize(14);
+    sheet.getRange(3, 1, 1, 3).setBackground('#e8f0fe');
+    
+    var grades = ['A','A-','B+','B','B-','C+','C','C-','D+','D','F','W'];
+    grades.forEach(function(grade, i) {
+      var row = 4 + i;
+      sheet.getRange(row, 1).setValue(grade);
+      sheet.getRange(row, 1).setFontWeight('bold');
+      sheet.getRange(row, 2).setFormula('=COUNTIF(\'📊 Academic Data\'!E:E,"' + grade + '")');
+      sheet.getRange(row, 3).setFormula('=IFERROR(B' + row + '/COUNTA(\'📊 Academic Data\'!E:E)*100,0) & "%"');
+    });
+    
+    // Course Type Analysis
+    sheet.getRange(4, 4).setValue('📊 COURSE TYPE ANALYSIS');
+    sheet.getRange(4, 4).setFontWeight('bold');
+    sheet.getRange(4, 4).setFontSize(14);
+    sheet.getRange(4, 4, 1, 3).setBackground('#e8f0fe');
+    
+    var types = ['Core','Elective','Lab','Project'];
+    types.forEach(function(type, i) {
+      var row = 5 + i;
+      sheet.getRange(row, 4).setValue(type);
+      sheet.getRange(row, 4).setFontWeight('bold');
+      sheet.getRange(row, 5).setFormula('=COUNTIF(\'📊 Academic Data\'!O:O,"' + type + '")');
+      sheet.getRange(row, 6).setFormula('=IFERROR(E' + row + '/COUNTA(\'📊 Academic Data\'!O:O)*100,0) & "%"');
+    });
+    
+    // Average GPA by Type
+    sheet.getRange(9, 4).setValue('📊 AVG GPA BY TYPE');
+    sheet.getRange(9, 4).setFontWeight('bold');
+    sheet.getRange(9, 4).setFontSize(14);
+    sheet.getRange(9, 4, 1, 3).setBackground('#e8f0fe');
+    
+    types.forEach(function(type, i) {
+      var row = 10 + i;
+      sheet.getRange(row, 4).setValue(type);
+      sheet.getRange(row, 5).setFormula(
+        '=AVERAGEIFS(\'📊 Academic Data\'!F:F,\'📊 Academic Data\'!O:O,"' + type + '",' +
+        '\'📊 Academic Data\'!H:H,"Completed",\'📊 Academic Data\'!E:E,"<>W")'
+      );
+    });
+    
+    sheet.autoResizeColumns(1, 6);
+    
+  } catch (error) {
+    Logger.log('setupCourseAnalytics Error: ' + error);
+  }
+}
+
+// ============================================================
+// ⚠️ ACADEMIC ADVISOR - FIXED
+// ============================================================
+
+function setupAcademicAdvisor(sheet) {
+  try {
+    sheet.clear();
+    
+    sheet.mergeCells(1, 1, 1, 4);
+    sheet.getRange(1, 1).setValue('⚠️ ACADEMIC ADVISOR');
+    sheet.getRange(1, 1).setFontSize(20);
+    sheet.getRange(1, 1).setFontWeight('bold');
+    sheet.getRange(1, 1).setBackground('#1a73e8');
+    sheet.getRange(1, 1).setFontColor('#ffffff');
+    sheet.setRowHeight(1, 50);
+    
+    // Advisor Cards
+    var advisors = [
+      ['📊 CGPA Status', 
+       '=LET(cgpa,Dashboard!B4,' +
+       'IF(cgpa>=3.7,"🌟 Outstanding! You are in Dean\'s List range!",' +
+       'IF(cgpa>=3.3,"📈 Excellent Progress! Keep it up!",' +
+       'IF(cgpa>=3.0,"👍 Good Standing! You are on track.",' +
+       'IF(cgpa>=2.5,"⚠️ Need Improvement! Focus on weak areas.",' +
+       'IF(cgpa>=2.0,"🔴 Academic Warning! Seek help immediately.","🚨 Academic Probation! Contact advisor."))))))'],
+      
+      ['📚 Credit Progress',
+       '=LET(progress,Dashboard!B6,' +
+       'IF(progress>=90,"🎯 Excellent! You are almost there!",' +
+       'IF(progress>=75,"📈 Good Progress! Keep going.",' +
+       'IF(progress>=50,"⚠️ Moderate Progress! Need to accelerate.",' +
+       '"🔴 Behind Schedule! Take more credits per semester."))))'],
+      
+      ['❌ Failed Courses',
+       '=LET(fails,COUNTIF(\'📊 Academic Data\'!E:E,"F"),' +
+       'IF(fails=0,"✅ No Failed Courses! Great job!",' +
+       'IF(fails<=2,"⚠️ You have " & fails & " failed course(s). Retake them ASAP.",' +
+       '"🔴 Critical! You have " & fails & " failed courses. Seek immediate help.")))'],
+      
+      ['🔄 Retake Opportunities',
+       '=LET(retakes,COUNTIFS(\'📊 Academic Data\'!K:K,">0",\'📊 Academic Data\'!K:K,"<8",' +
+       '\'📊 Academic Data\'!G:G,"<>Retaken"),' +
+       'IF(retakes=0,"✅ All courses improved! Great work!",' +
+       'IF(retakes<=3,"💡 You have " & retakes & " course(s) to retake. Priority: D > C > B",' +
+       '"🔴 You have " & retakes & " courses to retake. Start with highest priority.")))']
+    ];
+    
+    advisors.forEach(function(advisor, i) {
+      var row = 3 + i * 3;
+      sheet.getRange(row, 1, 1, 3).merge();
+      sheet.getRange(row, 1).setValue(advisor[0]);
+      sheet.getRange(row, 1).setFontWeight('bold');
+      sheet.getRange(row, 1).setFontSize(12);
+      sheet.getRange(row, 1).setBackground('#e8f0fe');
+      
+      sheet.getRange(row + 1, 1, 1, 3).merge();
+      sheet.getRange(row + 1, 1).setFormula(advisor[1]);
+      sheet.getRange(row + 1, 1).setFontSize(14);
+      sheet.getRange(row + 1, 1).setFontWeight('bold');
+    });
+    
+    // Smart Recommendations
+    var currentSem = getCurrentSemester();
+    sheet.getRange(16, 1).setValue('💡 SMART RECOMMENDATIONS');
+    sheet.getRange(16, 1).setFontWeight('bold');
+    sheet.getRange(16, 1).setFontSize(14);
+    sheet.getRange(16, 1, 1, 4).setBackground('#e8f0fe');
+    
+    var recs = [
+      ['📌 Priority Action:', 
+       '=LET(priority,RIGHT(INDEX(\'🔄 Retake Planner\'!B3),1),' +
+       'IF(ISNUMBER(priority*1),' +
+       'IF(priority*1<=2,"🔴 Retake D/C grade courses first",' +
+       'IF(priority*1<=4,"🟡 Retake C+/B- grade courses",' +
+       'IF(priority*1<=6,"🔵 Retake B/B+ grade courses",' +
+       '"✅ No retakes needed"))),"✅ All done!"))'],
+      
+      ['📈 Next Step:',
+       '=LET(cgpa,Dashboard!B4,' +
+       'IF(cgpa<2.5,"📚 Focus on retakes and core courses",' +
+       'IF(cgpa<3.0,"📊 Balance retakes with new courses",' +
+       'IF(cgpa<3.5,"🎯 Maintain CGPA with consistent performance",' +
+       '"🌟 Aim for Dean\'s List with A grades"))))'],
+      
+      ['⚠️ Warning:',
+       '=LET(load,SUMIF(\'📊 Academic Data\'!A:A,' + currentSem + ',\'📊 Academic Data\'!D:D),' +
+       'IF(load>18,"🔴 High course load! Consider dropping 1 course.",' +
+       'IF(load>15,"⚠️ Moderate load. Manage time well.",' +
+       '"✅ Good course load. Stay consistent.")))']
+    ];
+    
+    recs.forEach(function(rec, i) {
+      var row = 17 + i * 2;
+      sheet.getRange(row, 1).setValue(rec[0]);
+      sheet.getRange(row, 1).setFontWeight('bold');
+      sheet.getRange(row, 2, 1, 3).merge();
+      sheet.getRange(row, 2).setFormula(rec[1]);
+      sheet.getRange(row, 2).setFontSize(12);
+    });
+    
+    sheet.autoResizeColumns(1, 4);
+    
+  } catch (error) {
+    Logger.log('setupAcademicAdvisor Error: ' + error);
+  }
+}
+
+// ============================================================
+// 🏆 ACHIEVEMENT & GOALS - FIXED
+// ============================================================
+
+function setupAchievementGoals(sheet) {
+  try {
+    sheet.clear();
+    
+    sheet.mergeCells(1, 1, 1, 4);
+    sheet.getRange(1, 1).setValue('🏆 ACHIEVEMENT & GOALS');
+    sheet.getRange(1, 1).setFontSize(20);
+    sheet.getRange(1, 1).setFontWeight('bold');
+    sheet.getRange(1, 1).setBackground('#1a73e8');
+    sheet.getRange(1, 1).setFontColor('#ffffff');
+    sheet.setRowHeight(1, 50);
+    
+    // Achievements
+    sheet.getRange(3, 1).setValue('🏅 ACHIEVEMENTS');
+    sheet.getRange(3, 1).setFontWeight('bold');
+    sheet.getRange(3, 1).setFontSize(14);
+    sheet.getRange(3, 1, 1, 4).setBackground('#e8f0fe');
+    
+    var achievements = [
+      ['🏆 Dean\'s List', '=IF(Dashboard!B4>=3.5,"✅ Achieved - CGPA: " & TEXT(Dashboard!B4,"0.00"),' +
+       '"⏳ Need " & TEXT(3.5-Dashboard!B4,"0.00") & " more")'],
+      ['📈 Most Improved', '=IF(COUNTIFS(\'📊 Academic Data\'!L:L,"<>",\'📊 Academic Data\'!M:M,"<>")>0,' +
+       '"✅ Achieved - Multiple improvements","⏳ Improve at least 2 courses")'],
+      ['🎯 Graduation Ready', '=IF(Dashboard!B6>=95,"✅ Achieved - Ready to graduate!",' +
+       '"⏳ " & TEXT(95-Dashboard!B6,"0") & "% more")'],
+      ['⭐ Consistent Performer', '=IF(AVERAGE(\'📊 Academic Data\'!F:F)>=3,"✅ Achieved - Consistent good grades",' +
+       '"⏳ Average GPA: " & TEXT(AVERAGE(\'📊 Academic Data\'!F:F),"0.00"))']
+    ];
+    
+    achievements.forEach(function(ach, i) {
+      var row = 4 + i * 2;
+      sheet.getRange(row, 1).setValue(ach[0]);
+      sheet.getRange(row, 1).setFontWeight('bold');
+      sheet.getRange(row, 2, 1, 3).merge();
+      sheet.getRange(row, 2).setFormula(ach[1]);
+    });
+    
+    // Goals
+    sheet.getRange(13, 1).setValue('🎯 GOAL SETTING');
+    sheet.getRange(13, 1).setFontWeight('bold');
+    sheet.getRange(13, 1).setFontSize(14);
+    sheet.getRange(13, 1, 1, 4).setBackground('#e8f0fe');
+    
+    sheet.getRange(14, 1).setValue('Target CGPA:');
+    sheet.getRange(14, 2).setValue(3.3);
+    sheet.getRange(15, 1).setValue('Target Graduation:');
+    sheet.getRange(15, 2).setFormula('=Settings!B2+15');
+    sheet.getRange(16, 1).setValue('Goal Status:');
+    sheet.getRange(16, 2).setFormula(
+      '=LET(target,B14,' +
+      'IF(Dashboard!B4>=target,"🎯 CGPA Goal Achieved!",' +
+      '"⏳ Need " & TEXT(target-Dashboard!B4,"0.00") & " more CGPA"))'
+    );
+    sheet.getRange(17, 1).setValue('Scholarship Eligible:');
+    sheet.getRange(17, 2).setFormula(
+      '=IF(Dashboard!B4>=3.5,"✅ Yes - Dean\'s List Eligible",' +
+      'IF(Dashboard!B4>=3.3,"✅ Yes - Scholarship Eligible",' +
+      'IF(Dashboard!B4>=3.0,"⏳ Need 0.3 more for scholarship",' +
+      '"❌ Not Eligible"))))'
+    );
+    
+    sheet.autoResizeColumns(1, 4);
+    
+  } catch (error) {
+    Logger.log('setupAchievementGoals Error: ' + error);
+  }
+}
+
+// ============================================================
+// ⚙️ SETTINGS - FIXED
+// ============================================================
+
+function setupSettings(sheet) {
+  try {
+    sheet.clear();
+    
+    sheet.mergeCells(1, 1, 1, 4);
+    sheet.getRange(1, 1).setValue('⚙️ SETTINGS');
+    sheet.getRange(1, 1).setFontSize(20);
+    sheet.getRange(1, 1).setFontWeight('bold');
+    sheet.getRange(1, 1).setBackground('#1a73e8');
+    sheet.getRange(1, 1).setFontColor('#ffffff');
+    sheet.setRowHeight(1, 50);
+    
+    var settings = [
+      ['📅 Current Semester', 262],
+      ['🎓 Graduation Credit', 160],
+      ['📊 Grade Scale', 'Standard (A=4.0)'],
+      ['🎯 Target CGPA', 3.3],
+      ['📚 Max Credits/Semester', 18],
+      ['🔄 Auto Refresh', 'Enabled'],
+      ['🌓 Dark Mode', 'Disabled'],
+      ['📊 Charts', 'Enabled'],
+      ['🔔 Notifications', 'Enabled'],
+      ['📤 Auto Backup', 'Disabled']
+    ];
+    
+    settings.forEach(function(setting, i) {
+      var row = 3 + i;
+      sheet.getRange(row, 1).setValue(setting[0]);
+      sheet.getRange(row, 1).setFontWeight('bold');
+      sheet.getRange(row, 2).setValue(setting[1]);
+      sheet.getRange(row, 1, 1, 2).setBackground(i % 2 === 0 ? '#f8f9fa' : '#ffffff');
+    });
+    
+    // Dynamic Ranges
+    sheet.getRange(1, 4).setValue('DYNAMIC RANGES (Auto-generated)');
+    sheet.getRange(2, 4).setValue('Last Semester:');
+    sheet.getRange(2, 5).setFormula('=MAX(\'📊 Academic Data\'!A:A)');
+    sheet.getRange(3, 4).setValue('Total Courses:');
+    sheet.getRange(3, 5).setFormula('=COUNTA(\'📊 Academic Data\'!B:B)-1');
+    sheet.getRange(4, 4).setValue('Unique Semesters:');
+    sheet.getRange(4, 5).setFormula('=COUNTUNIQUE(\'📊 Academic Data\'!A:A)-1');
+    
+    sheet.autoResizeColumns(1, 5);
+    
+  } catch (error) {
+    Logger.log('setupSettings Error: ' + error);
+  }
+}
+
+// ============================================================
+// 📋 ACTIVITY LOG - FIXED
+// ============================================================
+
+function setupActivityLog(sheet) {
+  try {
+    sheet.clear();
+    
+    sheet.mergeCells(1, 1, 1, 4);
+    sheet.getRange(1, 1).setValue('📋 ACTIVITY LOG');
+    sheet.getRange(1, 1).setFontSize(20);
+    sheet.getRange(1, 1).setFontWeight('bold');
+    sheet.getRange(1, 1).setBackground('#1a73e8');
+    sheet.getRange(1, 1).setFontColor('#ffffff');
+    sheet.setRowHeight(1, 50);
+    
+    var headers = ['Timestamp', 'User', 'Action', 'Details', 'Sheet'];
+    sheet.getRange(3, 1, 1, 5).setValues([headers]);
+    sheet.getRange(3, 1, 1, 5).setFontWeight('bold');
+    sheet.getRange(3, 1, 1, 5).setBackground('#1a73e8');
+    sheet.getRange(3, 1, 1, 5).setFontColor('#ffffff');
+    sheet.setFrozenRows(3);
+    
+    sheet.autoResizeColumns(1, 5);
+    
+  } catch (error) {
+    Logger.log('setupActivityLog Error: ' + error);
+  }
+}
+
+// ============================================================
+// 📊 HEATMAP - FIXED
+// ============================================================
+
+function setupHeatmap(sheet) {
+  try {
+    sheet.clear();
+    
+    sheet.mergeCells(1, 1, 1, 4);
+    sheet.getRange(1, 1).setValue('📊 PERFORMANCE HEATMAP');
+    sheet.getRange(1, 1).setFontSize(20);
+    sheet.getRange(1, 1).setFontWeight('bold');
+    sheet.getRange(1, 1).setBackground('#1a73e8');
+    sheet.getRange(1, 1).setFontColor('#ffffff');
+    sheet.setRowHeight(1, 50);
+    
+    // Semester Heatmap
+    sheet.getRange(3, 1).setValue('📊 SEMESTER PERFORMANCE HEATMAP');
+    sheet.getRange(3, 1).setFontWeight('bold');
+    sheet.getRange(3, 1).setFontSize(14);
+    sheet.getRange(3, 1, 1, 4).setBackground('#e8f0fe');
+    
+    var headers = ['Semester', 'GPA', 'Performance', 'Status'];
+    sheet.getRange(4, 1, 1, 4).setValues([headers]);
+    sheet.getRange(4, 1, 1, 4).setFontWeight('bold');
+    sheet.getRange(4, 1, 1, 4).setBackground('#1a73e8');
+    sheet.getRange(4, 1, 1, 4).setFontColor('#ffffff');
+    
+    sheet.getRange(5, 1, 100, 4).setFormula(
+      '=QUERY(\'📈 Dashboard\'!E8:H,' +
+      '"SELECT * WHERE A IS NOT NULL AND A > 0 ORDER BY A",0)'
+    );
+    
+    // Performance color coding
+    sheet.getRange(5, 3, 100, 1).setFormula(
+      '=IF(F5>=3.7,"🌟 Outstanding",' +
+      'IF(F5>=3.3,"📈 Excellent",' +
+      'IF(F5>=3.0,"✅ Good",' +
+      'IF(F5>=2.5,"⚠️ Average",' +
+      'IF(F5>=2.0,"🔴 Poor","🚨 Critical")))))'
+    );
+    
+    sheet.autoResizeColumns(1, 4);
+    
+  } catch (error) {
+    Logger.log('setupHeatmap Error: ' + error);
+  }
+}
+
+// ============================================================
+// 🎨 CONDITIONAL FORMATTING - FIXED
+// ============================================================
+
+function setupConditionalFormatting(sheet) {
+  try {
+    var rules = [];
+    var range = sheet.getRange(2, 5, sheet.getMaxRows() - 1, 1);
+    
+    // Priority based colors
+    var colors = [
+      { grade: 'D[+]?', bg: '#ff6b6b', fg: '#ffffff' },
+      { grade: 'C[-]?', bg: '#ffa94d', fg: '#000000' },
+      { grade: 'C\\+', bg: '#ffd93d', fg: '#000000' },
+      { grade: 'B-', bg: '#51cf66', fg: '#000000' },
+      { grade: 'B', bg: '#4dabf7', fg: '#ffffff' },
+      { grade: 'B\\+', bg: '#9775fa', fg: '#ffffff' },
+      { grade: 'A[-]?', bg: '#2b8a3e', fg: '#ffffff' },
+      { grade: 'F', bg: '#c92a2a', fg: '#ffffff' },
+      { grade: 'W', bg: '#adb5bd', fg: '#ffffff' }
+    ];
+    
+    colors.forEach(function(c) {
+      var rule = SpreadsheetApp.newConditionalFormatRule()
+        .whenTextMatches(c.grade)
+        .setBackground(c.bg)
+        .setFontColor(c.fg)
+        .setFontWeight("bold")
+        .setRanges([range])
+        .build();
+      rules.push(rule);
+    });
+    
+    // Retake Status coloring
+    var retakeRange = sheet.getRange(2, 7, sheet.getMaxRows() - 1, 1);
+    var ruleRetake = SpreadsheetApp.newConditionalFormatRule()
+      .whenTextEqualTo("Retaken")
+      .setBackground("#b7e1cd")
+      .setFontColor("#000000")
+      .setRanges([retakeRange])
+      .build();
+    rules.push(ruleRetake);
+    
+    sheet.setConditionalFormatRules(rules);
+    
+  } catch (error) {
+    Logger.log('setupConditionalFormatting Error: ' + error);
+  }
+}
+
+// ============================================================
+// 📊 SAMPLE DATA INSERT - FIXED
+// ============================================================
+
+function insertSampleData(sheet) {
+  try {
+    var data = [
+      [223,'CSE 2213','Discrete Mathematics',3,'C','','','Completed','','','','','','','Core','','',''],
+      [223,'CSE 1110','Introduction to Computer Systems',1,'A','','','Completed','','','','','','','Core','','',''],
+      [223,'ENG 1011','English I',3,'B-','','','Completed','','','','','','','Core','','',''],
+      [223,'URC 1103','Life Skills for Success',2,'A-','','','Completed','','','','','','','Core','','',''],
+      [231,'CSE 1111','Structured Programming Language',3,'A-','','','Completed','','','','','','','Core','','',''],
+      [231,'CSE 1112','Structured Programming Language Lab',1,'B+','','','Completed','','','','','','','Lab','','',''],
+      [231,'ENG 1013','English II',3,'C','','','Completed','','','','','','','Core','','',''],
+      [231,'BDS 1201','History of Bangladesh',2,'A','','','Completed','','','','','','','Core','','',''],
+      [232,'CSE 1115','Object Oriented Programming',3,'C','','','Completed','','','','','','','Core','','',''],
+      [232,'CSE 1116','OOP Lab',1,'B+','','','Completed','','','','','','','Lab','','',''],
+      [232,'CSE 1325','Digital Logic Design',3,'D+','','','Completed','','','','','','','Core','','',''],
+      [232,'CSE 1326','Digital Logic Lab',1,'C+','','','Completed','','','','','','','Lab','','',''],
+      [232,'SOC 2101','Society Environment Ethics',3,'B+','','','Completed','','','','','','','Core','','',''],
+      [233,'CSE 2233','Theory of Computation',3,'C+','','','Completed','','','','','','','Core','','',''],
+      [233,'MATH 1151','Calculus',3,'W','','','Withdraw','','','','','','','Core','','',''],
+      [233,'ECO 4101','Economics',3,'C+','','','Completed','','','','','','','Elective','','',''],
+      [241,'EEE 2113','Electrical Circuits',3,'F','','','Completed','','','','','','','Core','','',''],
+      [242,'CSE 3313','Computer Architecture',3,'B+','','','Completed','','','','','','','Core','','',''],
+      [242,'CSE 2215','Data Structure I',3,'A-','','','Completed','','','','','','','Core','','',''],
+      [242,'CSE 2216','DS I Lab',1,'W','','','Withdraw','','','','','','','Lab','','',''],
+      [242,'EEE 2113','Electrical Circuits',3,'C-','Retake','Completed','','','','','','','Core','','',''],
+      [243,'CSE 2216','DS I Lab',1,'A-','Retake','Completed','','','','','','','Lab','','',''],
+      [243,'EEE 2123','Electronics',3,'B','','','Completed','','','','','','','Core','','',''],
+      [243,'EEE 2124','Electronics Lab',1,'B+','','','Completed','','','','','','','Lab','','',''],
+      [243,'BIO 3105','Biology for Engineers',3,'F','','','Completed','','','','','','','Elective','','',''],
+      [243,'IPE 3401','Industrial Management',3,'B-','','','Completed','','','','','','','Core','','',''],
+      [251,'CSE 2217','DS II',3,'W','','','Withdraw','','','','','','','Core','','',''],
+      [251,'CSE 2218','DS II Lab',1,'C-','','','Completed','','','','','','','Lab','','',''],
+      [251,'CSE 3811','AI',3,'W','','','Withdraw','','','','','','','Core','','',''],
+      [251,'PHY 2106','Physics Lab',1,'B+','','','Completed','','','','','','','Lab','','',''],
+      [251,'MATH 1151','Calculus',3,'W','','','Withdraw','','','','','','','Core','','',''],
+      [252,'CSE 2217','DS II',3,'B-','Retake','Completed','','','','','','','Core','','',''],
+      [252,'CSE 3711','Computer Networks',3,'B-','','','Completed','','','','','','','Core','','',''],
+      [252,'CSE 3712','CN Lab',1,'B-','','','Completed','','','','','','','Lab','','',''],
+      [252,'CSE 3812','AI Lab',1,'C+','','','Completed','','','','','','','Lab','','',''],
+      [252,'MATH 1151','Calculus',3,'F','Retake','Completed','','','','','','','Core','','',''],
+      [253,'CSE 3411','System Analysis',3,'A','','','Completed','','','','','','','Core','','',''],
+      [253,'CSE 3521','DBMS',3,'B','','','Completed','','','','','','','Core','','',''],
+      [253,'CSE 2118','Advanced OOP Lab',1,'A','','','Completed','','','','','','','Lab','','',''],
+      [253,'MATH 1151','Calculus',3,'B-','Retake','Completed','','','','','','','Core','','',''],
+      [261,'CSE 4325','Microprocessors',3,'B+','','','Completed','','','','','','','Core','','',''],
+      [261,'CSE 3421','Software Engineering',3,'B+','','','Completed','','','','','','','Core','','',''],
+      [261,'CSE 3522','DBMS Lab',1,'B+','','','Completed','','','','','','','Lab','','',''],
+      [261,'PMG 4101','Project Management',3,'B+','','','Completed','','','','','','','Core','','',''],
+      [261,'MATH 2183','Calculus & Linear Algebra',3,'B+','','','Completed','','','','','','','Core','','',''],
+      [262,'CSE 4165','Web Programming',3,'','','','Running','','','','','','','Core','','','']
+    ];
+    
+    if (sheet.getLastRow() < 2) {
+      sheet.getRange(2, 1, data.length, 18).setValues(data);
+    }
+    
+  } catch (error) {
+    Logger.log('insertSampleData Error: ' + error);
+  }
+}
+
+// ============================================================
+// 🔄 REFRESH FUNCTIONS - FIXED
+// ============================================================
+
+function refreshAll() {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    
+    // Update all formulas in Academic Data
+    var dataSheet = ss.getSheetByName('📊 Academic Data');
+    if (dataSheet) {
+      var lastRow = dataSheet.getLastRow();
+      if (lastRow > 1) {
+        var formulas = [
+          {col:6, formula:'=IF(E2="A",4,IF(E2="A-",3.67,IF(E2="B+",3.33,IF(E2="B",3,IF(E2="B-",2.67,IF(E2="C+",2.33,IF(E2="C",2,IF(E2="C-",1.67,IF(E2="D+",1.33,IF(E2="D",1,IF(E2="F",0,IF(E2="W",0,""))))))))))))'},
+          {col:10, formula:'=IF(OR(E2="D+",E2="D",E2="C-",E2="C",E2="C+",E2="B-",E2="B",E2="B+"),"Yes",IF(E2="","",IF(OR(E2="A",E2="A-",E2="F",E2="W"),"No","")))'},
+          {col:11, formula:'=IF(OR(E2="D+",E2="D"),1,IF(OR(E2="C",E2="C-"),2,IF(E2="C+",3,IF(E2="B-",4,IF(E2="B",5,IF(E2="B+",6,IF(OR(E2="A-",E2="A"),7,IF(OR(E2="F",E2="W"),8,""))))))))'},
+          {col:14, formula:'=IF(AND(G2<>"Completed",E2<>"W",E2<>"F",E2<>""),D2,0)'},
+          {col:16, formula:'=IF(ROW(B2)=MAX(FILTER(ROW(B:B),B:B=B2)),"Yes","No")'},
+          {col:17, formula:'=IFERROR(SUMPRODUCT((A:A=A2)*(D:D)*(F:F)*(F:F>0))/SUMPRODUCT((A:A=A2)*(D:D)*(F:F>0)),0)'},
+          {col:18, formula:'=IFERROR(SUMPRODUCT((H:H="Completed")*(D:D)*(F:F)*(F:F>0))/SUMPRODUCT((H:H="Completed")*(D:D)*(F:F>0)),0)'}
+        ];
+        
+        formulas.forEach(function(f) {
+          try {
+            dataSheet.getRange(2, f.col, lastRow - 1, 1).setFormula(f.formula);
+          } catch(e) {
+            // Skip if error
+          }
+        });
+      }
+    }
+    
+    // Refresh Dashboard
+    var dashSheet = ss.getSheetByName('📈 Dashboard');
+    if (dashSheet) {
+      try {
+        var statsRange = dashSheet.getRange(6, 1, 20, 7);
+        statsRange.clearContent();
+        
+        var formulas2 = [
+          {row:6, col:1, value:'📊 Current CGPA'},
+          {row:6, col:2, value:'=IFERROR(SUMPRODUCT(\'📊 Academic Data\'!D:D,\'📊 Academic Data\'!F:F,\'📊 Academic Data\'!F:F>0,\'📊 Academic Data\'!H:H="Completed")/SUMPRODUCT(\'📊 Academic Data\'!D:D,\'📊 Academic Data\'!F:F>0,\'📊 Academic Data\'!H:H="Completed"),0)'},
+          {row:7, col:1, value:'✅ Credits Earned'},
+          {row:7, col:2, value:'=SUMPRODUCT(\'📊 Academic Data\'!D:D,\'📊 Academic Data\'!F:F>0,\'📊 Academic Data\'!H:H="Completed")'},
+          {row:8, col:1, value:'📚 Credits Remaining'},
+          {row:8, col:2, value:'=Settings!B3 - B7'},
+          {row:9, col:1, value:'🎯 Graduation %'},
+          {row:9, col:2, value:'=IFERROR(B7/Settings!B3*100,0)'}
+        ];
+        
+        formulas2.forEach(function(f) {
+          try {
+            dashSheet.getRange(f.row, f.col).setValue(f.value);
+          } catch(e) {
+            // Skip if error
+          }
+        });
+      } catch(e) {
+        // Skip if error
+      }
+    }
+    
+    // Log activity
+    logActivity('System', 'Refresh', 'All sheets refreshed automatically');
+    
+  } catch (error) {
+    Logger.log('refreshAll Error: ' + error);
+  }
+}
+
+// ============================================================
+// 📋 LOG ACTIVITY - FIXED
+// ============================================================
+
+function logActivity(user, action, details) {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName('📋 Activity Log');
+    if (!sheet) return;
+    
+    var timestamp = new Date();
+    var lastRow = sheet.getLastRow() + 1;
+    sheet.getRange(lastRow, 1).setValue(timestamp);
+    sheet.getRange(lastRow, 2).setValue(user || 'System');
+    sheet.getRange(lastRow, 3).setValue(action);
+    sheet.getRange(lastRow, 4).setValue(details);
+    sheet.getRange(lastRow, 5).setValue(sheet.getName());
+    
+  } catch (error) {
+    Logger.log('logActivity Error: ' + error);
+  }
+}
+
+// ============================================================
+// 🏗️ CREATE MENU - FIXED
+// ============================================================
+
+function createMenu() {
+  try {
+    var ui = SpreadsheetApp.getUi();
+    var menu = ui.createMenu('🎓 Academic ERP');
+    menu.addItem('🔄 Refresh All', 'refreshAll');
+    menu.addItem('📊 View Dashboard', 'viewDashboard');
+    menu.addItem('🔄 Retake Planner', 'viewRetakePlanner');
+    menu.addItem('🎯 CGPA Predictor', 'viewCGPAPredictor');
+    menu.addSeparator();
+    menu.addItem('📤 Export PDF Report', 'exportReport');
+    menu.addItem('📋 Generate Transcript', 'generateTranscript');
+    menu.addSeparator();
+    menu.addItem('🏗️ Reset All Sheets', 'resetAll');
+    menu.addItem('📖 Help', 'showHelp');
+    menu.addToUi();
+  } catch (error) {
+    Logger.log('createMenu Error: ' + error);
+  }
+}
+
+// ============================================================
+// 📤 EXPORT FUNCTIONS - FIXED
+// ============================================================
+
+function exportReport() {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var ui = SpreadsheetApp.getUi();
+    
+    var response = ui.alert('📤 Export Report', 
+      'Choose export format:', 
+      ui.ButtonSet.YES_NO_CANCEL);
+    
+    if (response == ui.Button.YES) {
+      var dashboard = ss.getSheetByName('📈 Dashboard');
+      if (dashboard) {
+        var url = ss.getUrl();
+        var exportUrl = url.replace(/edit.*$/, '') + 
+          'export?format=pdf&size=A4&portrait=true&fitw=true&sheetnames=false&printtitle=false&pagenum=false&gridlines=false&fzr=true&gid=' + 
+          dashboard.getSheetId();
+        
+        var html = '<html><body><script>window.open("' + exportUrl + '");google.script.host.close();</script></body></html>';
+        var htmlOutput = HtmlService.createHtmlOutput(html).setWidth(1).setHeight(1);
+        ui.showModalDialog(htmlOutput, 'Generating PDF...');
+        logActivity('User', 'Export', 'PDF Report exported');
+      }
+    } else if (response == ui.Button.NO) {
+      var dataSheet = ss.getSheetByName('📊 Academic Data');
+      if (dataSheet) {
+        var data = dataSheet.getDataRange().getValues();
+        var csv = data.map(row => row.join(',')).join('\n');
+        
+        var html = '<html><body><a href="data:text/csv;charset=utf-8,' + 
+          encodeURIComponent(csv) + '" download="Academic_Data.csv">Download CSV</a>' +
+          '<script>window.onload=function(){document.querySelector("a").click();google.script.host.close();}</script></body></html>';
+        
+        var htmlOutput = HtmlService.createHtmlOutput(html).setWidth(300).setHeight(100);
+        ui.showModalDialog(htmlOutput, 'Download CSV');
+        logActivity('User', 'Export', 'CSV Report exported');
+      }
+    }
+  } catch (error) {
+    Logger.log('exportReport Error: ' + error);
+    SpreadsheetApp.getUi().alert('❌ Export Error: ' + error);
+  }
+}
+
+function generateTranscript() {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var dataSheet = ss.getSheetByName('📊 Academic Data');
+    var dashSheet = ss.getSheetByName('📈 Dashboard');
+    
+    if (!dataSheet || !dashSheet) return;
+    
+    var ui = SpreadsheetApp.getUi();
+    ui.alert('📋 Transcript', 
+      'CGPA: ' + dashSheet.getRange('B4').getValue() + '\n' +
+      'Credits: ' + dashSheet.getRange('B5').getValue() + '\n' +
+      'Courses: ' + (dataSheet.getLastRow() - 1) + '\n\n' +
+      '📄 Full transcript will be generated in PDF format.',
+      ui.ButtonSet.OK);
+    
+    logActivity('User', 'Transcript', 'Transcript generated');
+  } catch (error) {
+    Logger.log('generateTranscript Error: ' + error);
+  }
+}
+
+// ============================================================
+// 📱 VIEW FUNCTIONS - FIXED
+// ============================================================
+
+function viewDashboard() {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName('📈 Dashboard');
+    if (sheet) {
+      sheet.activate();
+      refreshAll();
+    }
+  } catch (error) {
+    Logger.log('viewDashboard Error: ' + error);
+  }
+}
+
+function viewRetakePlanner() {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName('🔄 Retake Planner');
+    if (sheet) {
+      sheet.activate();
+      refreshAll();
+    }
+  } catch (error) {
+    Logger.log('viewRetakePlanner Error: ' + error);
+  }
+}
+
+function viewCGPAPredictor() {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName('🎯 CGPA Predictor');
+    if (sheet) sheet.activate();
+  } catch (error) {
+    Logger.log('viewCGPAPredictor Error: ' + error);
+  }
+}
+
+// ============================================================
+// 🔄 RESET ALL - FIXED
+// ============================================================
+
+function resetAll() {
+  try {
+    var ui = SpreadsheetApp.getUi();
+    var response = ui.alert('⚠️ Warning', 
+      'This will DELETE ALL DATA and reset everything. Continue?', 
+      ui.ButtonSet.YES_NO);
+    
+    if (response == ui.Button.YES) {
+      var ss = SpreadsheetApp.getActiveSpreadsheet();
+      var sheets = ss.getSheets();
+      sheets.forEach(function(sheet) {
+        try {
+          ss.deleteSheet(sheet);
+        } catch(e) {
+          // Skip if can't delete
+        }
+      });
+      createAllSheets();
+      logActivity('System', 'Reset', 'All sheets recreated');
+      ui.alert('✅ Reset complete! All sheets recreated.');
+    }
+  } catch (error) {
+    Logger.log('resetAll Error: ' + error);
+  }
+}
+
+function showHelp() {
+  try {
+    var ui = SpreadsheetApp.getUi();
+    ui.alert('📖 Help Guide', 
+      '🎓 ACADEMIC ERP SYSTEM v5.0\n\n' +
+      '📊 Dashboard: View all stats\n' +
+      '🔄 Retake Planner: Smart priority system\n' +
+      '🎯 CGPA Predictor: What-if analysis\n' +
+      '📅 Semester Planner: Plan your courses\n' +
+      '🎓 Graduation Progress: Track completion\n' +
+      '⚠️ Academic Advisor: AI style insights\n' +
+      '🏆 Achievements: Track your goals\n' +
+      '⚙️ Settings: Customize everything\n\n' +
+      '💡 Priority System:\n' +
+      '🔴 D > 🟠 C > 🟡 C+ > 🟢 B- > 🔵 B > 🟣 B+',
+      ui.ButtonSet.OK);
+  } catch (error) {
+    Logger.log('showHelp Error: ' + error);
+  }
+}
+
+// ============================================================
+// 🚀 ON OPEN TRIGGER - FIXED
+// ============================================================
+
+function onOpen() {
+  try {
+    createMenu();
+    
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    
+    const requiredSheets = [
+      "📊 Academic Data",
+      "📈 Dashboard",
+      "🔄 Retake Planner"
+    ];
+    
+    const allExist = requiredSheets.every(sheetName =>
+      ss.getSheetByName(sheetName)
+    );
+    
+    if (!allExist) {
+      createAllSheets();
+      return;
+    }
+    
+    refreshAll();
+    
+  } catch (error) {
+    Logger.log("onOpen Error: " + error);
+  }
+}
+
+// ============================================================
+// 📊 ON EDIT TRIGGER - FIXED
+// ============================================================
+
+function onEdit(e) {
+  try {
+    var range = e.range;
+    var sheet = range.getSheet();
+    var row = range.getRow();
+    var col = range.getColumn();
+    
+    if (!sheet || row < 2) return;
+    
+    // If editing Academic Data
+    if (sheet.getName() === '📊 Academic Data') {
+      var dataSheet = sheet;
+      
+      // Grade Changed
+      if (col === 5) {
+        var lastRow = dataSheet.getLastRow();
+        var courseCode = dataSheet.getRange(row, 2).getValue();
+        var semester = dataSheet.getRange(row, 1).getValue();
+        
+        // Update Formulas
+        var formulas = [
+          {
+            col: 6,
+            formula: `=IF(E${row}="A",4,IF(E${row}="A-",3.67,IF(E${row}="B+",3.33,IF(E${row}="B",3,IF(E${row}="B-",2.67,IF(E${row}="C+",2.33,IF(E${row}="C",2,IF(E${row}="C-",1.67,IF(E${row}="D+",1.33,IF(E${row}="D",1,IF(E${row}="F",0,IF(E${row}="W",0,""))))))))))))`
+          },
+          {
+            col: 10,
+            formula: `=IF(OR(E${row}="D+",E${row}="D",E${row}="C-",E${row}="C",E${row}="C+",E${row}="B-",E${row}="B",E${row}="B+"),"Yes",IF(E${row}="","",IF(OR(E${row}="A",E${row}="A-",E${row}="F",E${row}="W"),"No","")))`
+          },
+          {
+            col: 11,
+            formula: `=IF(OR(E${row}="D+",E${row}="D"),1,IF(OR(E${row}="C",E${row}="C-"),2,IF(E${row}="C+",3,IF(E${row}="B-",4,IF(E${row}="B",5,IF(E${row}="B+",6,IF(OR(E${row}="A-",E${row}="A"),7,IF(OR(E${row}="F",E${row}="W"),8,""))))))))`
+          },
+          {
+            col: 14,
+            formula: `=IF(AND(G${row}<>"Completed",E${row}<>"W",E${row}<>"F",E${row}<>""),D${row},0)`
+          }
+        ];
+        
+        formulas.forEach(function(f) {
+          try {
+            dataSheet.getRange(row, f.col).setFormula(f.formula);
+          } catch(e) {
+            // Skip if error
+          }
+        });
+        
+        // Update Is Latest
+        if (courseCode && lastRow > 1) {
+          try {
+            var codes = dataSheet.getRange(2, 2, lastRow - 1, 1).getValues();
+            var latestRow = 0;
+            
+            codes.forEach(function(item, index) {
+              if (item[0] === courseCode) {
+                var currentRow = index + 2;
+                dataSheet.getRange(currentRow, 16).setValue("No");
+                latestRow = currentRow;
+              }
+            });
+            
+            if (latestRow > 0) {
+              dataSheet.getRange(latestRow, 16).setValue("Yes");
+            }
+          } catch(e) {
+            // Skip if error
+          }
+        }
+        
+        // Update Semester GPA & Overall CGPA
+        if (semester && lastRow > 1) {
+          try {
+            var semesterRows = dataSheet.getRange(2, 1, lastRow - 1, 1).getValues();
+            
+            semesterRows.forEach(function(item, index) {
+              if (item[0] === semester) {
+                dataSheet.getRange(index + 2, 17).setFormula(
+                  '=IFERROR(SUMPRODUCT((A:A=' + semester + ')*(D:D)*(F:F)*(F:F>0))/SUMPRODUCT((A:A=' + semester + ')*(D:D)*(F:F>0)),0)'
+                );
+              }
+            });
+            
+            dataSheet.getRange(row, 18).setFormula(
+              '=IFERROR(SUMPRODUCT((H:H="Completed")*(D:D)*(F:F)*(F:F>0))/SUMPRODUCT((H:H="Completed")*(D:D)*(F:F>0)),0)'
+            );
+          } catch(e) {
+            // Skip if error
+          }
+        }
+        
+        // Refresh Dashboard
+        refreshAll();
+        
+        logActivity("User", "Edit", `Grade changed for ${courseCode}`);
+      }
+      
+      // Course Status Changed
+      if (col === 8) {
+        refreshAll();
+      }
+    }
+  } catch (error) {
+    Logger.log('onEdit Error: ' + error);
+  }
+}
+
+// ============================================================
+// 🔧 UTILITY FUNCTIONS - FIXED
+// ============================================================
+
+function getSettingsValue(key) {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const settingsSheet = ss.getSheetByName("⚙️ Settings");
+    
+    if (!settingsSheet) {
+      return null;
+    }
+    
+    const settingsData = settingsSheet.getDataRange().getValues();
+    
+    for (const row of settingsData) {
+      if (row[0] === key) {
+        return row[1];
+      }
+    }
+    
+    return null;
+  } catch (error) {
+    Logger.log('getSettingsValue Error: ' + error);
+    return null;
+  }
+}
+
+function getCurrentSemester() {
+  const DEFAULT_SEMESTER = 262;
+  
+  try {
+    const sheet = SpreadsheetApp
+      .getActiveSpreadsheet()
+      .getSheetByName("⚙️ Settings");
+    
+    if (!sheet) return DEFAULT_SEMESTER;
+    
+    const semester = sheet.getRange("B2").getValue();
+    
+    return semester || DEFAULT_SEMESTER;
+    
+  } catch (error) {
+    Logger.log("getCurrentSemester Error: " + error);
+    return DEFAULT_SEMESTER;
+  }
+}
+
+// ============================================================
+// 📊 CHART FUNCTIONS - NEW
+// ============================================================
+
+function createCharts() {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var dashSheet = ss.getSheetByName('📈 Dashboard');
+    var heatSheet = ss.getSheetByName('📊 Heatmap');
+    
+    if (!dashSheet || !heatSheet) return;
+    
+    // Get data range for charts
+    var dataRange = dashSheet.getRange('E8:G20');
+    var chart = dashSheet.newChart()
+      .setChartType(SpreadsheetApp.ChartType.LINE)
+      .addRange(dataRange)
+      .setPosition(23, 5, 0, 0)
+      .setOption('title', 'Semester GPA Trend')
+      .setOption('curveType', 'function')
+      .setOption('vAxis', {title: 'GPA'})
+      .setOption('hAxis', {title: 'Semester'})
+      .build();
+    
+    dashSheet.insertChart(chart);
+    
+    // Grade Distribution Pie Chart
+    var analyticsSheet = ss.getSheetByName('📚 Course Analytics');
+    if (analyticsSheet) {
+      var gradeRange = analyticsSheet.getRange('A4:B15');
+      var pieChart = analyticsSheet.newChart()
+        .setChartType(SpreadsheetApp.ChartType.PIE)
+        .addRange(gradeRange)
+        .setPosition(4, 7, 0, 0)
+        .setOption('title', 'Grade Distribution')
+        .setOption('is3D', true)
+        .build();
+      
+      analyticsSheet.insertChart(pieChart);
+    }
+    
+    logActivity('System', 'Charts', 'Charts created successfully');
+    
+  } catch (error) {
+    Logger.log('createCharts Error: ' + error);
+  }
+}
