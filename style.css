@@ -1,0 +1,148 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body{
+    font-family: 'Poppins', sans-serif;
+    background: #f5f5f5;
+}
+
+/* ================= Navbar ================= */
+
+.navbar{
+    width: 100%;
+    padding: 20px 5%;
+
+    z-index: 100;
+
+ position: absolute;
+    top: 2px;
+     padding: 10;
+    margin: 10;
+
+
+}
+
+
+
+nav{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fff;
+    padding: 20px 30px;
+    border-radius: 8px;
+}
+
+.logo h2{
+    color: #09c2a3;
+    font-size: 35px;
+}
+
+nav ul{
+    display: flex;
+    list-style: none;
+    gap: 30px;
+}
+
+nav ul li a{
+    text-decoration: none;
+    color: black;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+nav ul li a:hover{
+    color: #09c2a3;
+}
+
+button{
+    padding: 12px 22px;
+    background: #09c2a3;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover{
+    background: #087d69;
+}
+
+/* ================= Hero ================= */
+
+.hero{
+        position: relative;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 60px 5%;
+}
+
+.left{
+    width: 45%;
+}
+
+.left h1{
+    font-size: 60px;
+    line-height: 75px;
+    color: #1b2b46;
+    margin-bottom: 20px;
+}
+
+.left span{
+    color: #09c2a3;
+}
+
+.left p{
+    color: gray;
+    line-height: 28px;
+    margin-bottom: 30px;
+}
+
+.right{
+    width: 50%;
+}
+
+.right img{
+    width: 100%;
+    height: 650px;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+/* ================= Search ================= */
+
+.search{
+    width: 90%;
+    margin: 40px auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #09c2a3;
+    padding: 20px;
+    border-radius: 8px;
+    gap: 15px;
+}
+
+.search input,
+.search select{
+    flex: 1;
+    padding: 15px;
+    border: none;
+    outline: none;
+    border-radius: 5px;
+}
+
+.search button{
+    padding: 15px 35px;
+    background: #0b1f4d;
+}
+
+.search button:hover{
+    background: black;
+}
