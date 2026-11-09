@@ -162,7 +162,6 @@ low priority
 good first issue
 help wanted
 duplicate
-invalid
 question
 ```
 
